@@ -1,10 +1,3 @@
----
-runme:
-  id: 01HJ8T02SCN7XK8279J77GK658
-  version: v2.0
----
-
-```sh {"id":"01HJ8T0MJD47GDTYT1JZCPNRF6"}
 # Cotización del Dólar y Calculadora
 
 Este proyecto muestra la cotización del dólar y una calculadora de precios en dólares basada en los datos obtenidos de la API de DolarSi. Las cotizaciones se muestran en tarjetas y la calculadora realiza cálculos basados en la cotización del Dólar Oficial.
@@ -30,5 +23,3 @@ Este proyecto muestra la cotización del dólar y una calculadora de precios en 
 ## Licencia
 
 Este proyecto está bajo la Licencia MIT - consulta el archivo [LICENSE.md](LICENSE.md) para más detalles.
-
-```
