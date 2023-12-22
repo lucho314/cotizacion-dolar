@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cotización del Dólar y Calculadora</title>
+  <!-- Importar Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #212121; /* Color de fondo oscuro */
+      color: #ffffff; /* Color de texto claro */
+    }
+    .skeleton-card {
+      width: 414px; /* Ancho fijo */
+      height: 144px; /* Altura fija */
+      background-color: #424242; /* Color de fondo del esqueleto */
+      margin-bottom: 10px; /* Margen inferior para separar las tarjetas */
+    }
+    .card {
+      width: 414px; /* Ancho fijo */
+      height: 144px; /* Altura fija */
+    }
+    .card-body {
+      overflow: hidden; /* Ocultar el desbordamiento */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center">Cotización del Dólar</h1>
+    <div class="row" id="cotizacionesRow">
+      <!-- Tarjetas de esqueleto para mostrar mientras se cargan los datos -->
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="skeleton-card"></div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="skeleton-card"></div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="skeleton-card"></div>
+      </div>
+    </div>
+
+    <h2 class="text-center mt-5">Calculadora de Precios en Dólares</h2>
+    <div class="row">
+      <div class="col-12 col-md-6 offset-md-3">
+        <div class="mb-3">
+          <label for="precioDolares" class="form-label">Precio en Dólares</label>
+          <input id="precioDolares" type="number" step="0.01" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label for="cantidadPesos" class="form-label">Cantidad de Pesos (ARS) sin impuestos:</label>
+          <input id="cantidadPesos" type="number" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+          <label for="impuestoPais" class="form-label">+ Impuesto PAÍS (30%):</label>
+          <input id="impuestoPais" type="number" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+          <label for="impuestoGanancias" class="form-label">+ Imp. a las ganancias (30%):</label>
+          <input id="impuestoGanancias" type="number" class="form-control" readonly>
+        </div>
+        <div class="mb-3">
+          <label for="totalImpuestos" class="form-label">Total con impuestos:</label>
+          <input id="totalImpuestos" type="number" class="form-control" readonly>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Obtener la cotización del dólar desde la API
+      fetch('https://www.dolarsi.com/api/api.php?type=valoresprincipales')
+        .then(response => response.json())
+        .then(data => {
+          // Filtrar los datos para obtener solo Dólar Oficial, Dólar Blue y Dólar Bolsa
+          const cotizacionesFiltradas = data.filter(dolar =>
+            dolar.casa.nombre === 'Dolar Oficial' ||
+            dolar.casa.nombre === 'Dolar Blue' ||
+            dolar.casa.nombre === 'Dolar Bolsa'
+          );
+
+          // Remover las tarjetas de esqueleto
+          document.getElementById('cotizacionesRow').innerHTML = '';
+
+          // Crear las tarjetas para cada resultado filtrado de la cotización del dólar
+          const cotizacionesRow = document.getElementById('cotizacionesRow');
+          cotizacionesFiltradas.forEach(dolar => {
+            const cardCol = document.createElement('div');
+            cardCol.classList.add('col-12', 'col-md-6', 'col-lg-4');
+
+            const card = document.createElement('div');
+            card.classList.add('card', 'bg-dark', 'text-white', 'mb-3');
+
+            const cardBody = document.createElement('div');
+            cardBody.classList.add('card-body');
+
+            const cardTitle = document.createElement('h5');
+            cardTitle.classList.add('card-title');
+            cardTitle.textContent = dolar.casa.nombre;
+
+            const compra = document.createElement('p');
+            compra.textContent = `Compra: ${dolar.casa.compra}`;
+
+            const venta = document.createElement('p');
+            venta.textContent = `Venta: ${dolar.casa.venta}`;
+
+            cardBody.appendChild(cardTitle);
+            cardBody.appendChild(compra);
+            cardBody.appendChild(venta);
+            card.appendChild(cardBody);
+            cardCol.appendChild(card);
+            cotizacionesRow.appendChild(cardCol);
+          });
+
+          // Escuchar cambios en el campo de entrada
+          document.getElementById('precioDolares').addEventListener('input', function() {
+            const precioDolares = parseFloat(this.value);
+            if (!isNaN(precioDolares)) {
+              // Realizar los cálculos
+              const cantidadPesos = precioDolares * parseFloat(cotizacionesFiltradas[0].casa.venta.replace('.', '').replace(',', '.'));
+              const impuestoPais = cantidadPesos * 0.3;
+              const impuestoGanancias = cantidadPesos * 0.3;
+              const totalConImpuestos = cantidadPesos + impuestoPais + impuestoGanancias;
+
+              // Mostrar los resultados
+              document.getElementById('cantidadPesos').value = cantidadPesos.toFixed(2);
+              document.getElementById('impuestoPais').value = impuestoPais.toFixed(2);
+              document.getElementById('impuestoGanancias').value = impuestoGanancias.toFixed(2);
+              document.getElementById('totalImpuestos').value = totalConImpuestos.toFixed(2);
+            } else {
+              // Limpiar los resultados si el campo está vacío o no es un número
+              document.getElementById('cantidadPesos').value = '';
+              document.getElementById('impuestoPais').value = '';
+              document.getElementById('impuestoGanancias').value = '';
+              document.getElementById('totalImpuestos').value = '';
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching data: ', error);
+        });
+    });
+  </script>
+</body>
+</html>
